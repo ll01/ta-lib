@@ -18,9 +18,9 @@ jobs:
       - name: build wheel
         run: |
           make download
-          make install-ta-lib
-          make manylinux-wheel
-          make repair-manylinux-wheel
+          sudo make install-ta-lib
+          sudo make manylinux-wheel
+          sudo make repair-manylinux-wheel
       - name: upload wheel
         run: |
           pip install twine
