@@ -24,4 +24,4 @@ jobs:
       - name: upload wheel
         run: |
           pip install twine
-          twine upload dist/*
+          twine upload wheelhouse/ta_lib_binaries*
