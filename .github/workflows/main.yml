@@ -17,6 +17,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: build wheel
         run: |
+          make download
           make install-ta-lib
           make manylinux-wheel
           make repair-manylinux-wheel
