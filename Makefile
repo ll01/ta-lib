@@ -30,8 +30,12 @@ run-docker:
 	docker run -it -v $(pwd):/io quay.io/pypa/manylinux2014_x86_64
 
 install-ta-lib:
-	tar -xzf ta-lib-0.4.0-src.tar.gz 
-	cd ta-lib/ && ./configure && make && make install && cd ..
+	tar -xzf ta-lib-0.4.0-src.tar.gz
+	cd ta-lib/ ; \
+	chmod +x ./configure; \
+	./configure --prefix=/usr --build="$(shell uname -m)-unknown-linux-gnu"; \
+	make; \
+	make install;
 
 manylinux-wheel:
 	for PYBIN in $(wildcard /opt/python/*/bin);	\
