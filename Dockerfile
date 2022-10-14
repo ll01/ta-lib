@@ -21,13 +21,13 @@ RUN dnf upgrade --refresh -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
     | tar xvz --strip-components 1 \
-    && ./configure --prefix="$TA_PREFIX" --build="${ARCHITECTURE}-unknown-linux-gnu" \
+    && ./configure --prefix="$TA_PREFIX" \
     && make \
     && make install
 
 WORKDIR /src/ta-lib-python
 COPY . .
-RUN make manylinux-wheel  -j 4
+RUN make manylinux-wheel -j 10
 RUN make repair-manylinux-wheel
 
 
@@ -42,12 +42,12 @@ FROM builder as publish
 RUN pip install twine
 RUN --mount=type=secret,id=TWINE_ACCESS_CODE \
     TWINE_ACCESS_CODE=$(cat /run/secrets/TWINE_ACCESS_CODE) &&  \
-    twine upload wheelhouse/ta*.whl -u __token__ -p $TWINE_ACCESS_CODE  --verbose
+    twine upload wheelhouse/TA_Lib_Precompiled*manylinux* -u __token__ -p $TWINE_ACCESS_CODE  --verbose
 
 # Build final image.
 FROM python:3.10-slim
-COPY --from=builder /src/ta-lib-python/wheelhouse/ta* /opt/ta-lib-python/wheels/
+COPY --from=builder /src/ta-lib-python/wheelhouse/TA_Lib_Precompiled*manylinux* /opt/ta-lib-python/wheels/
 COPY --from=builder /opt/ta-lib-core /opt/ta-lib-core
 RUN pip install numpy
-RUN python -m pip install ta-lib-bin --no-index -f /opt/ta-lib-python/wheels \
+RUN python -m pip install TA-Lib-Precompiled --no-index -f /opt/ta-lib-python/wheels \
     && python -c 'import numpy, talib; close = numpy.random.random(100); output = talib.SMA(close); print(output)'

@@ -32,7 +32,7 @@ TA-Lib installed on the Linux platforms is no longer necessary.
 
 Install pre-build binary from PyPI
 ```
-$ pip install ta-lib-bin
+$ pip install TA-Lib-Precompiled
 ```
 
 ## Build Wheels using [manylinux](https://github.com/pypa/manylinux)

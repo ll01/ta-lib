@@ -49,13 +49,13 @@ manylinux-wheel: $(build-targets)
 
 $(build-targets): build-%:
 	"$*"/pip install -r requirements.txt;	\
-	"$*"/pip  --no-cache-dir   wheel ./ -w wheelhouse/;	\
+	"$*"/pip --no-cache-dir wheel ./ -w wheelhouse/;	\
 	rm -rf build;
 
 repair-manylinux-wheel:
-	for whl in $(wildcard wheelhouse/ta*.whl);	\
+	for whl in $(wildcard wheelhouse/TA_Lib_Precompiled*.whl);	\
 	do	\
-		auditwheel repair $$whl -w wheelhouse/;	\
+		auditwheel repair $$whl -w wheelhouse || true;	\
 	done
 
 install-test:
