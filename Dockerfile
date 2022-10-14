@@ -27,7 +27,7 @@ RUN dnf upgrade --refresh -y \
 
 WORKDIR /src/ta-lib-python
 COPY . .
-RUN make manylinux-wheel -j 10
+RUN make manylinux-wheel -j 4
 RUN make repair-manylinux-wheel
 
 
@@ -37,12 +37,6 @@ RUN python3.10 -m pip install -e . \
 
 RUN python3.10 -m pip install -r requirements_test.txt \
         && pytest . ;
-
-FROM builder as publish
-RUN pip install twine
-RUN --mount=type=secret,id=TWINE_ACCESS_CODE \
-    TWINE_ACCESS_CODE=$(cat /run/secrets/TWINE_ACCESS_CODE) &&  \
-    twine upload wheelhouse/TA_Lib_Precompiled*manylinux* -u __token__ -p $TWINE_ACCESS_CODE  --verbose
 
 # Build final image.
 FROM python:3.10-slim
