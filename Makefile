@@ -1,5 +1,7 @@
 .PHONY: build
 
+.PHONY: manylinux-wheel $(build-targets)
+
 build:
 	python3 setup.py build_ext --inplace
 
@@ -37,16 +39,21 @@ install-ta-lib:
 	make; \
 	make install;
 
-manylinux-wheel:
-	for PYBIN in $(wildcard /opt/python/*/bin);	\
-	do	\
-		$$PYBIN/pip install -r requirements.txt;	\
-		$$PYBIN/pip wheel ./ -w wheelhouse/;	\
-		rm -rf build;	\
-	done
+pythons := $(wildcard /opt/python/*/bin)
+
+build-targets := $(addprefix build-,$(pythons))
+
+.PHONY: manylinux-wheel $(build-targets)
+
+manylinux-wheel: $(build-targets)
+
+$(build-targets): build-%:
+	"$*"/pip install -r requirements.txt;	\
+	"$*"/pip  --no-cache-dir   wheel ./ -w wheelhouse/;	\
+	rm -rf build;
 
 repair-manylinux-wheel:
-	for whl in $(wildcard wheelhouse/ta_lib_bin*.whl);	\
+	for whl in $(wildcard wheelhouse/ta*.whl);	\
 	do	\
 		auditwheel repair $$whl -w wheelhouse/;	\
 	done

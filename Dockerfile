@@ -6,47 +6,48 @@
 #
 #    docker run --rm -it talib bash
 #
+ARG ARCHITECTURE=x86_64
+FROM quay.io/pypa/manylinux_2_28_${ARCHITECTURE} as builder
 
-ARG PYTHON_VERSION="3.7"
-
-FROM python:$PYTHON_VERSION as builder
-
+ARG ARCHITECTURE
 ENV TA_PREFIX="/opt/ta-lib-core"
 ENV TA_LIBRARY_PATH="$TA_PREFIX/lib" \
     TA_INCLUDE_PATH="$TA_PREFIX/include"
+ENV PATH="/opt/_internal/cpython-3.10.8/bin:$PATH"
 
 WORKDIR /src/ta-lib-core
-RUN apt-get update && apt-get install -y \
-        gfortran \
-        libfreetype6-dev \
-        libhdf5-dev \
-        liblapack-dev \
-        libopenblas-dev \
-        libpng-dev \
+RUN dnf upgrade --refresh -y \
+    && dnf update -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
     | tar xvz --strip-components 1 \
-    && ./configure --prefix="$TA_PREFIX" \
+    && ./configure --prefix="$TA_PREFIX" --build="${ARCHITECTURE}-unknown-linux-gnu" \
     && make \
     && make install
 
 WORKDIR /src/ta-lib-python
 COPY . .
-RUN python -m pip install -e . \
-    && python -c 'import numpy, talib; close = numpy.random.random(100); output = talib.SMA(close); print(output)' \
-    && python -m pip wheel --wheel-dir wheels .
+RUN make manylinux-wheel  -j 4
+RUN make repair-manylinux-wheel
 
-ARG RUN_TESTS="1"
-RUN if [ "$RUN_TESTS" -ne "0" ]; then \
-        python -m pip install -r requirements_test.txt \
-        && pytest . ; \
-    else \
-        echo "Skipping tests\n" ; \
-    fi
+
+FROM builder as test
+RUN python3.10 -m pip install -e . \
+    && python3.10 -c 'import numpy, talib; close = numpy.random.random(100); output = talib.SMA(close); print(output)' 
+
+RUN python3.10 -m pip install -r requirements_test.txt \
+        && pytest . ;
+
+FROM builder as publish
+RUN pip install twine
+RUN --mount=type=secret,id=TWINE_ACCESS_CODE \
+    TWINE_ACCESS_CODE=$(cat /run/secrets/TWINE_ACCESS_CODE) &&  \
+    twine upload wheelhouse/ta*.whl -u __token__ -p $TWINE_ACCESS_CODE  --verbose
 
 # Build final image.
-FROM python:$PYTHON_VERSION-slim
-COPY --from=builder /src/ta-lib-python/wheels /opt/ta-lib-python/wheels
+FROM python:3.10-slim
+COPY --from=builder /src/ta-lib-python/wheelhouse/ta* /opt/ta-lib-python/wheels/
 COPY --from=builder /opt/ta-lib-core /opt/ta-lib-core
-RUN python -m pip install --no-cache-dir /opt/ta-lib-python/wheels/*.whl \
+RUN pip install numpy
+RUN python -m pip install ta-lib-bin --no-index -f /opt/ta-lib-python/wheels \
     && python -c 'import numpy, talib; close = numpy.random.random(100); output = talib.SMA(close); print(output)'
