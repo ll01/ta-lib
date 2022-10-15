@@ -37,7 +37,7 @@ jobs:
           # configure cibuildwheel to build native archs ('auto'), and some
           # emulated ones
           CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_BEFORE_ALL: python3 -m pipx ensurepath --force && ${{ matrix.before }}
+          CIBW_BEFORE_ALL: ${{ matrix.before }}
 
       - uses: actions/upload-artifact@v3
         with:
