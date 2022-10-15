@@ -10,9 +10,6 @@ ARG ARCHITECTURE=x86_64
 FROM quay.io/pypa/manylinux_2_28_${ARCHITECTURE} as builder
 
 ARG ARCHITECTURE
-ENV TA_PREFIX="/opt/ta-lib-core"
-ENV TA_LIBRARY_PATH="$TA_PREFIX/lib" \
-    TA_INCLUDE_PATH="$TA_PREFIX/include"
 ENV PATH="/opt/_internal/cpython-3.10.8/bin:$PATH"
 
 WORKDIR /src/ta-lib-core
@@ -21,7 +18,7 @@ RUN dnf upgrade --refresh -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
     | tar xvz --strip-components 1 \
-    && ./configure --prefix="$TA_PREFIX" \
+    && ./configure --prefix=/usr \
     && make \
     && make install
 
