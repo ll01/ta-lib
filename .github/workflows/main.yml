@@ -27,9 +27,6 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
-      -
-        name: install pipx
-        run: python3 -m pip install --user pipx
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.11.1
@@ -38,6 +35,7 @@ jobs:
           # emulated ones
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_BEFORE_ALL: ${{ matrix.before }}
+          CIBW_SKIP: *36-* *37-*
 
       - uses: actions/upload-artifact@v3
         with:
