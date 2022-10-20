@@ -48,6 +48,6 @@ jobs:
       -
         name: upload to PyPI
         run: |
-        pip install twine && 
-        twine upload wheelhouse/*.whl -u __token__ \
-        -p ${{ secrets.TWINE_ACCESS_CODE }}  --verbose
+          pip install twine && 
+          twine upload wheelhouse/*.whl -u __token__ \
+          -p ${{ secrets.TWINE_ACCESS_CODE }}  --verbose"
