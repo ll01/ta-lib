@@ -40,7 +40,7 @@ jobs:
           CIBW_BUILD: cp310-*
           CIBW_BEFORE_ALL: ${{ matrix.before }}
           CIBW_BEFORE_BUILD: pip install -r requirements.txt
-          CIBW_SKIP: cp36-* cp37-* pp37-*
+          CIBW_SKIP: cp36-* cp37-* pp37-* *musllinux*
 
       - uses: actions/upload-artifact@v3
         with:
