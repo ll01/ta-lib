@@ -6,6 +6,8 @@ build/
 dist/
 *.so
 .*
+!.gitignore
+!.gitattributes
 *~
 *.egg-info/
 
